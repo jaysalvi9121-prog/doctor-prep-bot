@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DoctorIndexRouteImport } from './routes/doctor/index'
+import { Route as DoctorQueueRouteImport } from './routes/doctor/queue'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,30 +23,39 @@ const DoctorIndexRoute = DoctorIndexRouteImport.update({
   path: '/doctor/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DoctorQueueRoute = DoctorQueueRouteImport.update({
+  id: '/doctor/queue',
+  path: '/doctor/queue',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/doctor/queue': typeof DoctorQueueRoute
   '/doctor/': typeof DoctorIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/doctor/queue': typeof DoctorQueueRoute
   '/doctor': typeof DoctorIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/doctor/queue': typeof DoctorQueueRoute
   '/doctor/': typeof DoctorIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/doctor/'
+  fullPaths: '/' | '/doctor/queue' | '/doctor/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/doctor'
-  id: '__root__' | '/' | '/doctor/'
+  to: '/' | '/doctor/queue' | '/doctor'
+  id: '__root__' | '/' | '/doctor/queue' | '/doctor/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DoctorQueueRoute: typeof DoctorQueueRoute
   DoctorIndexRoute: typeof DoctorIndexRoute
 }
 
@@ -65,11 +75,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DoctorIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/doctor/queue': {
+      id: '/doctor/queue'
+      path: '/doctor/queue'
+      fullPath: '/doctor/queue'
+      preLoaderRoute: typeof DoctorQueueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DoctorQueueRoute: DoctorQueueRoute,
   DoctorIndexRoute: DoctorIndexRoute,
 }
 export const routeTree = rootRouteImport
