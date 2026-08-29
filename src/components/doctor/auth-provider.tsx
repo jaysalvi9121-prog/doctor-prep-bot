@@ -1,43 +1,36 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
-import { authService } from "@/services/auth-service";
-import type { Doctor } from "@/lib/types";
-
-type DoctorAuthValue = {
-  doctor: Doctor | null;
-  signInDoctor: (staffId: string) => Promise<Doctor>;
-  signOutDoctor: () => void;
-};
-
-const DoctorAuthContext = createContext<DoctorAuthValue | null>(null);
+import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { AuthContext, mockSignIn, useAuth, type AuthState, type Role } from "@/services/auth-service";
+import type { DoctorProfile } from "@/services/doctor-service";
 
 /**
- * Mock staff auth. Swapping in Clerk means replacing the body of these two
- * callbacks; consumers keep using `useDoctorAuth()`.
+ * Mock staff auth provider. Swapping in Clerk means replacing the bodies of
+ * these callbacks; consumers keep using `useDoctorAuth()`.
  */
 export function DoctorAuthProvider({ children }: { children: ReactNode }) {
-  const [doctor, setDoctor] = useState<Doctor | null>(null);
+  const [doctor, setDoctor] = useState<DoctorProfile | null>(null);
 
   const signInDoctor = useCallback(async (staffId: string) => {
-    const signed = await authService.signIn(staffId);
+    const signed = await mockSignIn(staffId);
     setDoctor(signed);
     return signed;
   }, []);
 
-  const signOutDoctor = useCallback(() => {
-    authService.signOut();
-    setDoctor(null);
-  }, []);
+  const signOut = useCallback(() => setDoctor(null), []);
 
-  const value = useMemo(
-    () => ({ doctor, signInDoctor, signOutDoctor }),
-    [doctor, signInDoctor, signOutDoctor],
+  const value = useMemo<AuthState>(
+    () => ({
+      role: (doctor ? "doctor" : "patient") as Role,
+      doctor,
+      signInDoctor,
+      signOut,
+    }),
+    [doctor, signInDoctor, signOut],
   );
 
-  return <DoctorAuthContext.Provider value={value}>{children}</DoctorAuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useDoctorAuth() {
-  const ctx = useContext(DoctorAuthContext);
-  if (!ctx) throw new Error("useDoctorAuth must be used inside DoctorAuthProvider");
-  return ctx;
+  const { doctor, signInDoctor, signOut } = useAuth();
+  return { doctor, signInDoctor, signOutDoctor: signOut };
 }
